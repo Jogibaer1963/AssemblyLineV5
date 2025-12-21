@@ -1,0 +1,102 @@
+/* Accessibility and stability helpers */
+.futuristic-table td {
+  word-break: break-word;
+}
+
+.futuristic-table tbody tr.clickable {
+  cursor: pointer;
+}
+.futuristic-table tbody tr[tabindex="0"]:focus {
+  outline: 2px solid rgba(103, 232, 249, 0.8);
+  outline-offset: 2px;
+}
+
+/* Deactivated state: indicate visually but keep interactions enabled */
+.futuristic-table.deactivated {
+  opacity: 0.6;
+  filter: grayscale(10%);
+}
+.futuristic-table.deactivated tbody tr {
+  cursor: pointer; /* keep consistent with clickable rows */
+}
+.futuristic-table.deactivated tbody tr:hover {
+  background: inherit; /* keep subtle hover when deactivated */
+}
+
+.futuristic-table tbody tr.empty td {
+  text-align: center;
+  color: rgba(200, 220, 240, 0.6);
+  font-style: italic;
+}
+
+.machine-table {
+  margin-right: 20px;
+  background: rgba(10, 20, 40, 0.7);
+  border-radius: 10px;
+  padding: 15px;
+  border: 1px solid rgba(0, 200, 255, 0.3);
+  box-shadow: 0 0 15px rgba(0, 200, 255, 0.2);
+}
+
+.futuristic-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: rgba(150, 220, 255, 0.9);
+}
+
+.futuristic-table th {
+  padding: 10px 15px;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 200, 255, 0.5);
+  font-weight: 600;
+  color: rgba(0, 220, 255, 1);
+}
+
+.futuristic-table td {
+  padding: 8px 15px;
+  border-bottom: 1px solid rgba(0, 200, 255, 0.2);
+}
+
+.futuristic-table tbody tr:hover {
+  background: rgba(0, 150, 255, 0.1);
+}
+
+.machine-table {
+  position: absolute;
+  left: 25em;
+}
+
+.machine-table.disabled {
+  opacity: 0.6;
+}
+
+.clickable-row.disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.futuristic-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: rgba(150, 220, 255, 0.9);
+}
+
+.futuristic-table th {
+  padding: 10px 15px;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 200, 255, 0.5);
+  font-weight: 600;
+  color: rgba(0, 220, 255, 1);
+}
+
+.futuristic-table td {
+  padding: 8px 15px;
+  border-bottom: 1px solid rgba(0, 200, 255, 0.2);
+}
+
+.futuristic-table tbody tr:hover {
+  background: rgba(0, 150, 255, 0.1);
+}

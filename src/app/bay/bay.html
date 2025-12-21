@@ -1,0 +1,23 @@
+  <div class="station-card">
+          <div class="card-border"></div>
+          <div class="status-indicator"
+               [class.status-active]="bay.active"
+               [class.status-inactive]="!bay.active"></div>
+         <div class="status-display" style="font-size:12px; opacity:.8;">{{ progress | number:'1.0-0' }}%</div>
+         <div class="status-bar" [style.--progress]="progress + '%'"></div>
+          <div class="hud-label">Bay activity</div>
+          <div class="card-header">
+            <div class="station-title">{{ bay.name }}</div>
+            <div class="button-wrapper">
+              <button type="button"
+                      class="move-button move-to-fcb-2"
+              >Move Machine</button>
+            </div>
+          </div>
+          <div class="status-text-a">{{ bay.status }}</div>
+          <div class="info-grid">
+            <div class="info-box info-danger">{{ bay.leavingDateTime }}</div>
+            <div class="info-box"></div>
+            <div class="info-box">{{ bay.install}}</div>
+          </div>
+        </div>
