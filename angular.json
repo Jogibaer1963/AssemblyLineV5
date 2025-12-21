@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "4581756a-b4a9-4700-b5cd-f8263322df39"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -17,6 +18,8 @@
           "builder": "@angular/build:application",
           "options": {
             "browser": "src/main.ts",
+            "index": "src/index.html",
+            "outputPath": "dist/assembly-line-v5",
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {
