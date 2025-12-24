@@ -2,15 +2,18 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Clock } from './clock/clock';
 import { Bay } from './bay/bay';
+import {Table} from './table/table';
+import { Arrow } from './arrow/arrow';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Clock, Bay],
+  imports: [RouterOutlet, Clock, Bay, Table, Arrow],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
   title = 'Assembly Line Viewer';
+
   bays = [
     {id: 1, name: 'FCB 1', status: 'C8911279',
       leavingDateTime: '', active: true, install: 'Fan Guard'},
@@ -43,6 +46,31 @@ export class App {
      {id: 11, name: 'Bay 10', status: 'C8911231',
        leavingDateTime:'2025-12-29 06:38:00', active: true,
        install: 'Unload Auger'},
+    {id: 12, name: 'Testbay 1', status: 'C8911231',
+       leavingDateTime:'2025-12-29 06:38:00', active: true,
+       install: 'Fluids Filling'},
+    {id: 13, name: 'Testbay 2', status: 'C8911231',
+       leavingDateTime:'2025-12-29 06:38:00', active: true,
+       install: 'Test Run'},
+    {id: 14, name: 'Bay 14', status: 'C8911231',
+       leavingDateTime:'2025-12-29 06:38:00', active: true,
+       install: 'Q-Gate 3'},
+    {id: 15, name: 'Bay 15', status: 'C8911231',
+       leavingDateTime:'2025-12-29 06:38:00', active: true,
+       install: 'Front Ladder'},
+    {id: 16, name: 'Bay 16', status: 'C8911231',
+       leavingDateTime:'2025-12-29 06:38:00', active: true,
+       install: 'Cat Walk cover, Engine Cover'},
+    {id: 17, name: 'Bay 17', status: 'C8911231',
+       leavingDateTime:'2025-12-29 06:38:00', active: true,
+       install: 'Tire MTS Assembly'},
+    {id: 18, name: 'Bay 18', status: 'C8911231',
+       leavingDateTime:'2025-12-29 06:38:00', active: true,
+       install: 'Feeder House Cover, Side Panels'},
+    {id: 19, name: 'Bay 19', status: 'C8911231',
+       leavingDateTime:'2025-12-29 06:38:00', active: true,
+       install: 'Final Q-Gate, repair'},
+
   ];
 
 

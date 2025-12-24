@@ -63,8 +63,11 @@
 }
 
 .machine-table {
-  position: absolute;
-  left: 25em;
+  position: relative;
+  left: 32em;
+  top: 66px;
+  width: 327px;
+  scale: 1.4;
 }
 
 .machine-table.disabled {

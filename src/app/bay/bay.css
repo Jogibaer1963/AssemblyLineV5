@@ -92,15 +92,15 @@
 
 .status-text-a {
   position: relative;
-  top: 0;
+  top: 15px;
   left: 6em;
   font-size: 25px;
 }
 
 .status-text-b {
   position: relative;
-  top: 0;
-  left: 3em;
+  top: -15px;
+  left: 0;
   font-size: 25px;
 }
 
@@ -149,17 +149,7 @@
 .status-inactive {
   background-color: rgb(220, 38, 38);
 }
-/*
-.status-bar {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 48px;
-  height: 12px;
-  border-radius: 2px;
-  background-color: rgba(255, 255, 255, 0.1);
-}
- */
+
 .status-display {
   position: relative;
   top: -5px;
@@ -278,6 +268,10 @@
   gap: 8px;
   font-size: 10px;
   color: rgba(255, 255, 255, 0.7);
+}
+
+.info-grid-large-margin {
+  margin-top: 41px;
 }
 
 .info-box {

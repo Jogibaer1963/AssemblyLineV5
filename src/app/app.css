@@ -43,9 +43,16 @@
 }
 
 .clock-wrapper {
-  position: absolute;
-  top: 1em;
-  left: 58em;
+    position: relative;
+    top: 1em;
+    left: -116em;
+}
+
+.arrow-wrapper {
+  position: relative;
+  top: -45em;
+  left: -27em;
+  scale: 0.2;
 }
 
 /* Header */
@@ -78,9 +85,9 @@
 /* Sections */
 .bay-section {
   position: relative;
-  margin-top: 2em;
+  margin-top: -78em;
   display: grid;
-  grid-template-columns: repeat(9, 280px);
+  grid-template-columns: repeat(9, 320px);
   gap: 20px;
   padding: 20px;
 }
@@ -100,8 +107,17 @@
   grid-column: 1;
 }
 
-app-bay:not(.bay-id-1):not(.bay-id-2):not(.bay-id-3) {
+.bay-id-12 {
+  grid-row: 4;
+  grid-column: 1;
+}
+
+app-bay:nth-child(n+4):nth-child(-n+11) {
   grid-row: 3;
+}
+
+app-bay:nth-child(n+13) {
+  grid-row: 4;
 }
 
 /* Station card */

@@ -1,1 +1,30 @@
-<p>table works!</p>
+         <!-- Machine Table -->
+        <div class="machine-table" role="region" aria-label="Machine schedule"
+             [class.disabled]="" [attr.aria-disabled]="">
+          <table class="futuristic-table" >
+            <thead>
+            <tr>
+              <th scope="col">Machine</th>
+              <th scope="col">Bay 2 Date/Time</th>
+            </tr>
+            </thead>
+            <tbody>
+            @for (machines of schedules; track machines._id) {
+              <tr class="clickable-row"
+                  [class.disabled]=""
+
+                  [attr.tabindex]=""
+                  [attr.aria-disabled]=""
+                  role="button">
+                <td>{{ machines.machine }}</td>
+                <td>{{ machines.bay_2 }}</td>
+              </tr>
+            }
+            @empty {
+              <tr class="empty">
+                <td colspan="2">No machines scheduled</td>
+              </tr>
+            }
+            </tbody>
+          </table>
+        </div>

@@ -17,6 +17,12 @@
       </div>
     </header>
  </div>
+  <div class=fcb-table>
+    <app-table></app-table>
+  </div>
+  <div class="arrow-wrapper">
+    <app-arrow></app-arrow>
+  </div>
   <div class="bay-section">
     @for (bay of bays; track bay.id) {
       <app-bay [bay]="bay" [class]="'bay-id-' + bay.id"></app-bay>
