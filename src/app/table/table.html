@@ -1,6 +1,5 @@
          <!-- Machine Table -->
-        <div class="machine-table" role="region" aria-label="Machine schedule"
-             [class.disabled]="" [attr.aria-disabled]="">
+        <div class="machine-table" role="region" aria-label="Machine schedule">
           <table class="futuristic-table" >
             <thead>
             <tr>
@@ -9,13 +8,10 @@
             </tr>
             </thead>
             <tbody>
-            @for (machines of schedules; track machines._id) {
-              <tr class="clickable-row"
-                  [class.disabled]=""
-
-                  [attr.tabindex]=""
-                  [attr.aria-disabled]=""
-                  role="button">
+            @for (machines of schedules; track machines._id; let first = $first) {
+              <tr [class.clickable-row]="first"
+                  role="button"
+                  (click)="first ? onFirstRowClick(machines.machine) : null">
                 <td>{{ machines.machine }}</td>
                 <td>{{ machines.bay_2 }}</td>
               </tr>

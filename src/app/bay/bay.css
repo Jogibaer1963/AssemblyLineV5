@@ -91,17 +91,18 @@
 }
 
 .status-text-a {
-  position: relative;
-  top: 15px;
-  left: 6em;
   font-size: 25px;
+  line-height: 1.2;
+  position: static; /* Entfernt das unvorhersehbare top/left Shifting */
+  margin: 0;
 }
 
 .status-text-b {
-  position: relative;
-  top: -15px;
-  left: 0;
-  font-size: 25px;
+ font-size: 25px;
+ line-height: 1.2;
+ position: static; /* Entfernt das unvorhersehbare top/left Shifting */
+ margin: 0;
+ padding-left: 0;
 }
 
 .bay-section {
@@ -236,28 +237,41 @@
 /* Status text */
 
 .status-text-wrapper {
-  margin-top: 12px;
   display: flex;
-  align-items: center;
-}
-
-.status-text-1,
-.status-text-2 {
-
+  flex-direction: row;      /* Erzwingt eine Zeile */
+  justify-content: flex-end; /* A immer rechts halten */
+  gap: 10px;                /* Abstand falls B da ist */
+  align-items: baseline;    /* Richtet Texte an der Schriftlinie aus */
+  min-height: 35px;         /* Reserviert exakt den Platz für eine Zeile (ca. 25px Font + Padding) */
   margin-top: 12px;
-  font-family: monospace;
-  font-size: 20px;
+  margin-bottom: 5px;
+  overflow: hidden;         /* Verhindert Umbruch, falls Text zu lang ist */
+  white-space: nowrap;
 }
 
-.status-text-2 {
-  position: relative;
-  top: 6px;
-  left: 5em;
+.status-text-b {
+  margin-right: auto;       /* Schiebt B nach ganz links, A bleibt rechts */
+}
+
+.status-text-a , .status-text-b {
   font-size: 25px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: monospace;
+}
+
+.status-text-a {
+  font-size: 25px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+}
+
+.status-text-b {
+  padding-left: 0;
 }
 
 .timer-box {
-  font-size: 15px;
+  padding-left: 0;
 }
 
 /* Info grid */
@@ -270,9 +284,6 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
-.info-grid-large-margin {
-  margin-top: 41px;
-}
 
 .info-box {
   border-radius: 6px;

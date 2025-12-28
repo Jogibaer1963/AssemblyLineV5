@@ -14,11 +14,13 @@
               >Move Machine</button>
             </div>
           </div>
-          <div class="status-text-a">{{ bay.status }}</div>
-          @if (bay.id !== 1 && bay.id !== 2 && bay.id !==3 && bay.id !== 13) {
-            <div class="status-text-b">-- free --</div>
-          }
-          <div class="info-grid" [class.info-grid-large-margin]="bay.id === 1 || bay.id === 2 || bay.id === 3 || bay.id === 13">
+    <div class="status-text-wrapper">
+      @if (bay.id !== 1 && bay.id !== 2 && bay.id !==3 && bay.id !== 13) {
+           <div class="status-text-b">{{ bay.status_b }}</div>
+       }
+      <div class="status-text-a">{{ bay.status_a }}</div>
+    </div>
+          <div class="info-grid">
             <div class="info-box info-danger">{{ bay.leavingDateTime }}</div>
             <div class="info-box"></div>
             <div class="info-box">{{ bay.install}}</div>

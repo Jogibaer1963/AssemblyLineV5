@@ -64,8 +64,9 @@
 
 .machine-table {
   position: relative;
-  left: 32em;
+  margin: 20px auto;
   top: 66px;
+  left: -54em;
   width: 327px;
   scale: 1.4;
 }
@@ -74,32 +75,8 @@
   opacity: 0.6;
 }
 
-.clickable-row.disabled {
-  pointer-events: none;
-  cursor: not-allowed;
-  opacity: 0.6;
+.clickable-row {
+  cursor: pointer;
+  pointer-events: auto;
 }
 
-.futuristic-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  color: rgba(150, 220, 255, 0.9);
-}
-
-.futuristic-table th {
-  padding: 10px 15px;
-  text-align: left;
-  border-bottom: 1px solid rgba(0, 200, 255, 0.5);
-  font-weight: 600;
-  color: rgba(0, 220, 255, 1);
-}
-
-.futuristic-table td {
-  padding: 8px 15px;
-  border-bottom: 1px solid rgba(0, 200, 255, 0.2);
-}
-
-.futuristic-table tbody tr:hover {
-  background: rgba(0, 150, 255, 0.1);
-}

@@ -49,10 +49,10 @@
 }
 
 .arrow-wrapper {
-  position: relative;
-  top: -45em;
-  left: -27em;
-  scale: 0.2;
+  position: absolute;
+  top: -5em;
+  left: -162px;
+  scale: 0.3;
 }
 
 /* Header */
@@ -120,7 +120,20 @@ app-bay:nth-child(n+13) {
   grid-row: 4;
 }
 
+/* table */
+.table-wrapper {
+  position: absolute;
+  top: 189px;
+  left: 87em;
+  z-index: 20;
+}
+
 /* Station card */
+.station-card-wrapper {
+  position: absolute;
+  top: 90em;
+}
+
 .station-card {
   border-radius: 16px;
   padding: 16px;
@@ -153,14 +166,14 @@ app-bay:nth-child(n+13) {
 }
 
 @media (min-width: 1280px) {
-/* Respect users who prefer reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-     }
+  /* Respect users who prefer reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
