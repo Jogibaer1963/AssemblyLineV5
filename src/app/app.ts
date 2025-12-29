@@ -25,7 +25,7 @@ import { Arrow } from './arrow/arrow';
   styleUrl: './app.css'
 })
 
-export class App {
+class App {
   title = 'Assembly Line Viewer';
 
   private baseTime = this.getPersistentBaseTime();
@@ -73,10 +73,10 @@ export class App {
      {id: 11, name: 'Bay 10', status_a: '', status_b: '',
        leavingDateTime:'', active: true,
        install: 'Unload Auger', startTime: this.baseTime},
-    {id: 12, name: 'Testbay 1', status_a: '', status_b: '',
+    {id: 12, name: 'Test-bay 1', status_a: '', status_b: '',
        leavingDateTime:'', active: true,
        install: 'Fluids Filling', startTime: this.baseTime},
-    {id: 13, name: 'Testbay 2', status_a: '', status_b: '',
+    {id: 13, name: 'Test-bay 2', status_a: '', status_b: '',
        leavingDateTime:'', active: true,
        install: 'Test Run', startTime: this.baseTime},
     {id: 14, name: 'Bay 14', status_a: '', status_b: '',
@@ -115,5 +115,7 @@ export class App {
 
 
 }
+
+export default App
 
 

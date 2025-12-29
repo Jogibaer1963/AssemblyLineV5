@@ -12,11 +12,11 @@
         <h1 class="title">{{ title }}</h1>
         <p class="subtitle"></p>
       </div>
-      <div class="clock-wrapper">
-        <app-clock></app-clock>
-      </div>
     </header>
  </div>
+   <div class="clock-wrapper">
+     <app-clock></app-clock>
+   </div>
   <div class=table-wrapper>
     <app-table (machineSelected)="updateBay(1, { status_a: $event })"></app-table>
   </div>
