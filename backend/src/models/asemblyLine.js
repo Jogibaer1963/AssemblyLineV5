@@ -42,6 +42,9 @@ const scheduleSchema = new mongoose.Schema({
   bay_10_end: { type: Date },
   // 'sequenz' must be a number
   sequenz: { type: Number, required: true },
+  station: { type: Array, default: [] },
+  Timeline: { type: Array, default: [] },
+  activeAssembly: { type: String, default: "false" },
 }, {
   timestamps: true,
   collection: 'productionSchedule'

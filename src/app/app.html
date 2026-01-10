@@ -18,7 +18,7 @@
      <app-clock></app-clock>
    </div>
   <div class=table-wrapper>
-    <app-table (machineSelected)="updateBay(1, { status_a: $event })"></app-table>
+    <app-table [disabled]="bays[0].status_a !== ''" (machineSelected)="onMachineSelected($event)"></app-table>
   </div>
   <div class="arrow-wrapper">
     <app-arrow></app-arrow>
@@ -26,7 +26,7 @@
   <div class="station-card-wrapper">
      <div class="bay-section">
     @for (bay of bays; track bay.id) {
-      <app-bay [bay]="bay" [class]="'bay-id-' + bay.id"></app-bay>
+      <app-bay [bay]="bay" [class]="'bay-id-' + bay.id" [moveDisabled]="isMoveDisabled(bay)" (moveRequest)="onMoveRequest($event)"></app-bay>
     }
   </div>
   </div>

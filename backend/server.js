@@ -39,6 +39,15 @@ async function getSortedSchedule(limit, sortDir) {
   return q.lean();
 }
 
+async function getActiveAssemblies() {
+  return Schedule.find({
+    $or: [
+      { activeAssembly: "true" },
+      { activeAssembly: "active" }
+    ]
+  }).lean();
+}
+
 connectDB()
   .then(async () => {
     // REST endpoints
@@ -54,6 +63,16 @@ connectDB()
       }
     });
 
+    app.get("/api/lineSchedule/activeAssembly", async (req, res) => {
+      try {
+        const docs = await getActiveAssemblies();
+        res.json(docs);
+      } catch (e) {
+        console.error("/api/lineSchedule/activeAssembly error:", e);
+        res.status(500).json({ message: "Failed to load active assemblies" });
+      }
+    });
+
     server = http.createServer(app);
 
     // Initialize Socket.IO attached to the same HTTP server
@@ -64,8 +83,10 @@ connectDB()
     // Helper to broadcast the latest schedule to all clients
     async function broadcastSchedule(reason = "change") {
       try {
-        const docs = await getSortedSchedule(undefined, 1);
-        io.emit("schedule:update", { reason, data: docs });
+        const tableDocs = await getSortedSchedule(undefined, 1);
+        io.emit("schedule:update", { reason, data: tableDocs });
+        const assemblyDocs = await getActiveAssemblies();
+        io.emit("assembly:update", { reason, data: assemblyDocs });
       } catch (err) {
         console.error("Broadcast failed:", err);
       }
@@ -113,6 +134,42 @@ connectDB()
       }
     });
 
+    app.patch("/api/lineSchedule/moveToStation", async (req, res) => {
+      try {
+        const { id, stationId, machine } = req.body ?? {};
+        if (!id || !stationId) {
+          return res.status(400).json({ message: "Missing id or stationId" });
+        }
+        const updated = await Schedule.findByIdAndUpdate(
+          id,
+          {
+            $set: {
+              station: [
+                { station: Number(stationId) },
+                { station_a: machine || id }
+              ],
+              activeList: "false",
+              activeAssembly: "true",
+            },
+            $push: {
+              Timeline: { enterStationID: Number(stationId), timeOfEnter: new Date() }
+            }
+          },
+          { new: true }
+        ).lean();
+        if (!updated) {
+          return res.status(404).json({ message: "Document not found" });
+        }
+        try {
+          await broadcastSchedule("manual-update");
+        } catch (e) {}
+        return res.json({ ok: true, data: updated });
+      } catch (e) {
+        console.error("PATCH /api/lineSchedule/moveToStation error:", e);
+        return res.status(500).json({ message: "Failed to move to station" });
+      }
+    });
+
     // Get the active FCB 1 document (where activeBayFCB_1 == "true")
     app.get("/api/fcb/1/status", async (req, res) => {
       try {
@@ -135,6 +192,8 @@ connectDB()
       try {
         const docs = await getSortedSchedule(undefined, 1);
         socket.emit("schedule:init", docs);
+        const assemblyDocs = await getActiveAssemblies();
+        socket.emit("assembly:init", assemblyDocs);
       } catch (e) {
         console.error("Emit init failed:", e);
       }

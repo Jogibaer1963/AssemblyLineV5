@@ -1,0 +1,52 @@
+
+
+#arrowAnim {
+  width: 200px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.arrow {
+  width: 30px;
+  height: 30px;
+  border: 8px solid;
+  border-color: #ec880d transparent transparent #ec880d;
+  transform: rotate(-45deg);
+}
+
+
+.arrowSliding {
+  position: absolute;
+  -webkit-animation: slide 3s linear infinite;
+          animation: slide 3s linear infinite;
+}
+
+.delay1 {
+  -webkit-animation-delay: 0.8s;
+    animation-delay: 0.8s;
+}
+.delay2 {
+  -webkit-animation-delay: 1.6s;
+    animation-delay: 1.6s;
+}
+.delay3 {
+  -webkit-animation-delay: 2.4s;
+    animation-delay: 2.4s;
+}
+
+@-webkit-keyframes slide {
+    0% { opacity:0; transform: translateX(50px); }
+   20% { opacity:1; transform: translateX(20px); }
+   80% { opacity:1; transform: translateX(-20px); }
+  100% { opacity:0; transform: translateX(-50px); }
+}
+@keyframes slide {
+   0% { opacity:0; transform: translateX(50px); }
+   20% { opacity:1; transform: translateX(20px); }
+   80% { opacity:1; transform: translateX(-20px); }
+  100% { opacity:0; transform: translateX(-50px); }
+}
+

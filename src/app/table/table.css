@@ -72,7 +72,9 @@
 }
 
 .machine-table.disabled {
-  opacity: 0.6;
+  opacity: 0.5;
+  pointer-events: none;
+  filter: grayscale(80%);
 }
 
 .clickable-row {

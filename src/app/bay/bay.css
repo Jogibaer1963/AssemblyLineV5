@@ -234,6 +234,13 @@
   background-color: rgba(255, 255, 255, 0.2);
 }
 
+.move-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
 /* Status text */
 
 .status-text-wrapper {
