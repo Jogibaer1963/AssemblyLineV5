@@ -1,240 +1,219 @@
+diff --git a/backend/server.js b/backend/server.js
+index da95641..b0bef1a 100644
+--- a/backend/server.js
++++ b/backend/server.js
+@@ -140,13 +140,28 @@ connectDB()
+         if (!id || !stationId) {
+           return res.status(400).json({ message: "Missing id or stationId" });
+         }
++
++        let targetField = 'station_a';
++        // Logic for station 4 (Bay 3) and station 5 (Bay 4) support for two machines (a and b)
++        const sId = Number(stationId);
++        if (sId === 4 || sId === 5) {
++          const alreadyInA = await Schedule.findOne({
++            "station.station": sId,
++            "station.station_a": { $exists: true },
++            _id: { $ne: id }
++          });
++          if (alreadyInA) {
++            targetField = 'station_b';
++          }
++        }
++
+         const updated = await Schedule.findByIdAndUpdate(
+           id,
+           {
+             $set: {
+               station: [
+                 { station: Number(stationId) },
+-                { station_a: machine || id }
++                { [targetField]: machine || id }
+               ],
+               activeList: "false",
+               activeAssembly: "true",
+diff --git a/backend/src/models/asemblyLine.js b/backend/src/models/asemblyLine.js
+index 5c9b615..2bf1ddd 100644
+--- a/backend/src/models/asemblyLine.js
++++ b/backend/src/models/asemblyLine.js
+@@ -5,6 +5,8 @@ const scheduleSchema = new mongoose.Schema({
+   _id: { type: String },
+   machine: { type: String },
+   bay_2: { type: String },
++  bay_3: { type: String },
++  bay_4: { type: String },
+   activeList: { type: String },
+   activeInLine: { type: String },
+   activeBayFCB_1: { type: String },
+diff --git a/src/app/app.ts b/src/app/app.ts
+index 97319c5..f0e1546 100644
+--- a/src/app/app.ts
++++ b/src/app/app.ts
+@@ -88,15 +88,16 @@ class App implements OnInit, OnDestroy {
+   }
 
-import * as http from "node:http";
-import dotenv from "dotenv";
-import connectDB, { closeDB } from "./src/config/db.js";
-import path from "node:path";
-import express from "express";
-import { fileURLToPath } from "node:url";
-import cors from "cors";
-import Schedule from "./src/models/asemblyLine.js";
-import { Server as SocketIOServer } from "socket.io";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.join(__dirname, ".env") });
-const app = express();
-const PORT = process.env.PORT || 5000;
-// Middlewares
-app.use(express.json());
-// Start a server after DB connection
-let server;
-let io; // socket.io instance
-let scheduleChangeStream; // Mongo change stream
-// CORS in non-production (Angular should use proxy in dev)
-const devOrigins = ["http://localhost:4200", "http://localhost:4500"]; // Angular dev servers
-const isProd = process.env.NODE_ENV === "production";
-if (!isProd) {
-  app.use(cors({ origin: devOrigins, credentials: true }));
-}
-async function getSortedSchedule(limit, sortDir) {
-  const q = Schedule.find({activeList: "true"});
-  q.sort({ sequenz: sortDir });
-  if (limit && Number(limit) > 0) q.limit(Number(limit));
-  return q.lean();
-}
-async function getActiveAssemblies() {
-  return Schedule.find({
-    $or: [
-      { activeAssembly: true },
-      { activeAssembly: "true" },
-      { activeAssembly: "active" }
-    ]
-  }).lean();
-}
-connectDB()
-  .then(async () => {
-    // REST endpoints
-    app.get("/api/lineSchedule", async (req, res) => {
-      try {
-        const { limit, sort } = req.query;
-        const sortDir = (typeof sort === "string" && sort.toLowerCase() === "desc") ? -1 : 1;
-        const docs = await getSortedSchedule(limit, sortDir);
-        res.json(docs);
-      } catch (e) {
-        console.error("/api/lineSchedule error:", e);
-        res.status(500).json({ message: "Failed to load line schedule" });
-      }
-    });
-    app.get("/api/lineSchedule/activeAssembly", async (req, res) => {
-      try {
-        const docs = await getActiveAssemblies();
-        res.json(docs);
-      } catch (e) {
-        console.error("/api/lineSchedule/activeAssembly error:", e);
-        res.status(500).json({ message: "Failed to load active assemblies" });
-      }
-    });
-    server = http.createServer(app);
-    // Initialize Socket.IO attached to the same HTTP server
-    io = new SocketIOServer(server, {
-      cors: isProd ? undefined : { origin: devOrigins, credentials: true },
-    });
-    // Helper to broadcast the latest schedule to all clients
-    async function broadcastSchedule(reason = "change") {
-      try {
-        const tableDocs = await getSortedSchedule(undefined, 1);
-        io.emit("schedule:update", { reason, data: tableDocs });
-        const assemblyDocs = await getActiveAssemblies();
-        io.emit("assembly:update", { reason, data: assemblyDocs });
-      } catch (err) {
-        console.error("Broadcast failed:", err);
-      }
-    }
-    // Update flags when moving items between stations/bays
-    app.patch("/api/lineSchedule/activeList", async (req, res) => {
-      try {
-        const { id, rowId, tag } = req.body ?? {};
-        const docId = id || rowId;
-        if (!docId) {
-          return res.status(400).json({ message: "Missing id" });
-        }
-        // Base payload always removes from a list
-        const setPayload = { activeList: "false", [tag]: "true" };
-        // Starting FCB-1 timestamps
-        if (tag === "activeBayFCB_1") {
-          setPayload["fcb_1_start"] = new Date();
-          setPayload["activeBayFCB_2"] = "false"; // ensure exclusivity
-        }
-        // Moving from FCB-1 to FCB-2 should end FCB-1 and clear its flag
-        if (tag === "activeBayFCB_2") {
-          setPayload["activeBayFCB_1"] = "false";
-          setPayload["fcb_1_end"] = new Date();
-          setPayload["fcb_2_start"] = new Date();
-        }
-        const updated = await Schedule.findByIdAndUpdate(
-          docId,
-          { $set: setPayload },
-          { new: true }
-        ).lean();
-        if (!updated) {
-          return res.status(404).json({ message: "Document not found" });
-        }
-        // Fallback broadcast in case change streams are not available
-        try {
-          await broadcastSchedule("manual-update");
-        } catch (e) {
-          // noop
-        }
-        return res.json({ ok: true, data: updated });
-      } catch (e) {
-        console.error("PATCH /api/lineSchedule/activeList error:", e);
-        return res.status(500).json({ message: "Failed to update activeList" });
-      }
-    });
-    app.patch("/api/lineSchedule/moveToStation", async (req, res) => {
-      try {
-        const { id, stationId, machine } = req.body ?? {};
-        if (!id || !stationId) {
-          return res.status(400).json({ message: "Missing id or stationId" });
-        }
-        const updated = await Schedule.findByIdAndUpdate(
-          id,
-          {
-            $set: {
-              station: [
-                { station: Number(stationId) },
-                { station_a: machine || id }
-              ],
-              activeList: "false",
-              activeAssembly: true
-            },
-            $push: {
-              Timeline: { enterStationID: Number(stationId), timeOfEnter: new Date() }
-            }
-          },
-          { new: true }
-        ).lean();
-        if (!updated) {
-          return res.status(404).json({ message: "Document not found" });
-        }
-        try {
-          await broadcastSchedule("manual-update");
-        } catch (e) {}
-        return res.json({ ok: true, data: updated });
-      } catch (e) {
-        console.error("PATCH /api/lineSchedule/moveToStation error:", e);
-        return res.status(500).json({ message: "Failed to move to station" });
-      }
-    });
-    // Get the active FCB 1 document (where activeBayFCB_1 == "true")
-    app.get("/api/fcb/1/status", async (req, res) => {
-      try {
-        const doc = await Schedule.findOne({ activeBayFCB_1: "true" }).lean();
-        if (!doc) return res.json({ active: false });
-        return res.json({ active: true, _id: doc._id, machine: doc.machine, start: doc.fcb_1_start ?? null });
-      } catch (e) {
-        console.error("GET /api/fcb/1/status error:", e);
-        return res.status(500).json({ message: "Failed to read FCB1 status" });
-      }
-    });
-    // ---------------------------------------------------------------------------------
-    io.on("connection", async (socket) => {
-      console.log("ðŸ”Œ Client connected:", socket.id);
-      // Send initial snapshot
-      try {
-        const docs = await getSortedSchedule(undefined, 1);
-        socket.emit("schedule:init", docs);
-        const assemblyDocs = await getActiveAssemblies();
-        socket.emit("assembly:init", assemblyDocs);
-      } catch (e) {
-        console.error("Emit init failed:", e);
-      }
-      socket.on("disconnect", () => {
-        console.log("ðŸ”Œ Client disconnected:", socket.id);
-      });
-    });
-    // Watch MongoDB changes for the Schedule collection
-    try {
-      scheduleChangeStream = Schedule.watch([], { fullDocument: "updateLookup" });
-      scheduleChangeStream.on("change", async (change) => {
-        // change.operationType: 'insert' | 'update' | 'replace' | 'delete' | 'invalidate' | 'drop' ...
-        if (change.operationType === "invalidate") return;
-        await broadcastSchedule(change.operationType);
-      });
-      scheduleChangeStream.on("error", (err) => {
-        console.error("Change stream error:", err);
-      });
-      console.log("ðŸ‘€ Watching Schedule changes for live updates");
-    } catch (err) {
-      console.warn("Change streams not available (replica set required). Live updates disabled.", err?.message ?? err);
-    }
-    server.listen(PORT, () => {
-      console.log(`ðŸš€ API running on http://localhost:${PORT}`);
-      console.log(`ðŸ“  Try: http://localhost:${PORT}/api/lineSchedule`);
-      console.log(`ðŸ”Š Socket.IO namespace: / (events: schedule:init, schedule:update)`);
-    });
-  })
-  .catch((err) => {
-    console.error("Failed to connect to MongoDB:", err);
-    process.exit(1);
-  });
-// Graceful shutdown
-async function shutdown(signal) {
-  try {
-    console.log(`\n${signal} received. Shutting down gracefully...`);
-    // Stop the change stream first
-    if (scheduleChangeStream) {
-      try {
-        await scheduleChangeStream.close();
-        console.log("Mongo change stream closed");
-      } catch (e) {
-        console.warn("Error closing change stream:", e);
-      }
-    }
-    // Close Socket.IO (stops accepting new connections and closes existing)
-    if (io) {
-      await new Promise((resolve) => io.close(() => resolve()));
-      console.log("Socket.IO server closed");
-    }
-    if (server) {
-      await new Promise((resolve) => server.close(resolve));
-      console.log("HTTP server closed");
-    }
-    await closeDB?.();
-  } catch (e) {
-    console.error("Error during shutdown:", e);
-  } finally {
-    process.exit(0);
-  }
-}
-process.on("SIGINT", () => { void shutdown("SIGINT"); });
-process.on("SIGTERM", () => { void shutdown("SIGTERM"); });
+   private syncBays(assemblies: any[]) {
+-    // 1. Create a map for quick lookup: stationId -> { status_a, leavingDateTime, machineId }
+-    const stationDataMap = new Map<number, { status_a: string, leavingDateTime: string, machineId: string }>();
++    // 1. Create a map for quick lookup: stationId -> { status_a, status_b, leavingDateTime, machineId }
++    const stationDataMap = new Map<number, { status_a: string, status_b: string, leavingDateTime: string, machineId: string }>();
+
+     if (Array.isArray(assemblies)) {
+       assemblies.forEach(doc => {
+         if (!doc) return;
+
+         let stationId: number | undefined;
+-        let status_a: string | undefined;
++        let sA: string | undefined;
++        let sB: string | undefined;
+
+         // Check station array
+         if (Array.isArray(doc.station)) {
+@@ -107,15 +108,18 @@ class App implements OnInit, OnDestroy {
+                 const num = Number(sId);
+                 if (!isNaN(num)) stationId = num;
+               }
+-              const sA = item.status_a ?? item.station_a;
+-              if (sA != null) status_a = String(sA);
++              const valA = item.status_a ?? item.station_a;
++              if (valA != null) sA = String(valA);
++
++              const valB = item.status_b ?? item.station_b;
++              if (valB != null) sB = String(valB);
+             } else if (item != null) {
+                // Fallback if item itself is the stationId or name
+                if (typeof item === 'number') stationId = item;
+                else if (typeof item === 'string') {
+                  const num = Number(item);
+                  if (!isNaN(num)) stationId = num;
+-                 else status_a = item;
++                 else sA = item;
+                }
+             }
+           });
+@@ -127,14 +131,28 @@ class App implements OnInit, OnDestroy {
+           if (!isNaN(num)) stationId = num;
+         }
+         const rootA = doc.status_a ?? doc.station_a;
+-        if (rootA != null && typeof rootA !== 'object') status_a = String(rootA);
++        if (rootA != null && typeof rootA !== 'object') sA = String(rootA);
+
+         if (stationId !== undefined) {
+-          stationDataMap.set(stationId, {
+-            status_a: status_a || '',
+-            leavingDateTime: doc.bay_2 || '',
+-            machineId: doc._id
+-          });
++          const existing = stationDataMap.get(stationId) || { status_a: '', status_b: '', leavingDateTime: '', machineId: '' };
++
++          if (sA) {
++            existing.status_a = sA;
++            existing.machineId = doc._id;
++            // Prioritize leavingDateTime from slot A
++            let timeVal = (stationId === 4) ? doc.bay_3 : (stationId === 5 ? doc.bay_4 : doc.bay_2);
++            if (timeVal) existing.leavingDateTime = timeVal;
++          } else if (sB) {
++            existing.status_b = sB;
++            // Only use slot B if slot A is not already set for this station
++            if (!existing.status_a) {
++              existing.machineId = doc._id;
++              let timeVal = (stationId === 4) ? doc.bay_3 : (stationId === 5 ? doc.bay_4 : doc.bay_2);
++              if (timeVal) existing.leavingDateTime = timeVal;
++            }
++          }
++
++          stationDataMap.set(stationId, existing);
+         }
+       });
+     }
+@@ -146,6 +164,7 @@ class App implements OnInit, OnDestroy {
+         return {
+           ...b,
+           status_a: data.status_a,
++          status_b: data.status_b,
+           leavingDateTime: data.leavingDateTime || ((b.id === 6 || b.id === 8) ? '0' : ''),
+           machineId: data.machineId
+         };
+@@ -153,6 +172,7 @@ class App implements OnInit, OnDestroy {
+         return {
+           ...b,
+           status_a: '',
++          status_b: '',
+           leavingDateTime: (b.id === 6 || b.id === 8) ? '0' : '',
+           machineId: undefined
+         };
+@@ -267,24 +287,32 @@ class App implements OnInit, OnDestroy {
+   }
+
+   onMoveRequest(bayId: number) {
+-    if (bayId === 1 || bayId === 2) {
++    if (bayId === 1 || bayId === 2 || bayId === 3 || bayId === 4) {
+       const currentBay = this.bays.find(b => b.id === bayId);
+       if (!currentBay || !currentBay.machineId) return;
+
+       const targetStationId = bayId + 1;
+-      const machineName = currentBay.status_a;
++      const machineName = currentBay.status_a || currentBay.status_b;
+       const machineId = currentBay.machineId;
+-      const bayValue = currentBay.leavingDateTime;
+
+       const apiBase = this.getBackendUrl() ? `${this.getBackendUrl()}/api` : '/api';
+
+       // Optimistic update
+-      this.updateBay(bayId, { status_a: '', leavingDateTime: '', machineId: undefined });
+-      this.updateBay(targetStationId, {
+-        status_a: machineName,
+-        leavingDateTime: bayValue,
+-        machineId: machineId
+-      });
++      const sourcePatch: Partial<BayModel> = { leavingDateTime: '', machineId: undefined };
++      if (currentBay.status_a) sourcePatch.status_a = '';
++      else sourcePatch.status_b = '';
++      this.updateBay(bayId, sourcePatch);
++
++      const targetBay = this.bays.find(b => b.id === targetStationId);
++      if (targetBay) {
++        const patch: Partial<BayModel> = { machineId: machineId };
++        if ((targetStationId === 4 || targetStationId === 5) && targetBay.status_a) {
++          patch.status_b = machineName;
++        } else {
++          patch.status_a = machineName;
++        }
++        this.updateBay(targetStationId, patch);
++      }
+
+       this.http.patch(`${apiBase}/lineSchedule/moveToStation`, {
+         id: machineId,
+@@ -293,9 +321,15 @@ class App implements OnInit, OnDestroy {
+       }).subscribe({
+         next: (res: any) => {
+           console.log(`Machine moved from ${bayId} to ${targetStationId} successfully`, res);
+-          // Requirement 4: Collect bay_2 from Document and store in leavingDateTime
+-          if (res.data && res.data.bay_2) {
+-            this.updateBay(targetStationId, { leavingDateTime: res.data.bay_2 });
++          // Requirement: Collect correct bay_X field
++          if (res.data) {
++            let timeVal = res.data.bay_2;
++            if (targetStationId === 4) timeVal = res.data.bay_3;
++            if (targetStationId === 5) timeVal = res.data.bay_4;
++
++            if (timeVal) {
++              this.updateBay(targetStationId, { leavingDateTime: timeVal });
++            }
+           }
+         },
+         error: (err) => {
+@@ -311,6 +345,14 @@ class App implements OnInit, OnDestroy {
+       const nextBay = this.bays.find(b => b.id === bay.id + 1);
+       return !!(nextBay && nextBay.status_a);
+     }
++    if (bay.id === 3) {
++      const bay4 = this.bays.find(b => b.id === 4);
++      return !!(bay4 && bay4.status_b);
++    }
++    if (bay.id === 4) {
++      const bay5 = this.bays.find(b => b.id === 5);
++      return !!(bay5 && bay5.status_b);
++    }
+     return false;
+   }

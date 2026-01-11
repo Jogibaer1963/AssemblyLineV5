@@ -140,13 +140,56 @@ connectDB()
         if (!id || !stationId) {
           return res.status(400).json({ message: "Missing id or stationId" });
         }
+
+        let targetField = 'station_a';
+        // Logic for station 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19 support for two machines (a and b)
+        const sId = Number(stationId);
+
+        // Requirement: Handle End of Line for Station 19 (Move to "Station 20")
+        if (sId === 20) {
+          const updated = await Schedule.findByIdAndUpdate(
+            id,
+            {
+              $set: {
+                station: [],
+                activeList: "false",
+                activeAssembly: "false",
+              },
+              $push: {
+                Timeline: { enterStationID: 19, EndOfLineLeaving: new Date() }
+              }
+            },
+            { new: true }
+          ).lean();
+
+          if (!updated) {
+            return res.status(404).json({ message: "Document not found" });
+          }
+          try {
+            await broadcastSchedule("manual-update");
+          } catch (e) {}
+          return res.json({ ok: true, data: updated });
+        }
+
+        if (sId === 4 || sId === 5 || sId === 6 || sId === 7 || sId === 8 || sId === 9 || sId === 10 ||
+          sId === 11 || sId === 12 || sId === 14 || sId === 15 || sId === 16 || sId === 17 || sId === 18 || sId === 19) {
+          const alreadyInA = await Schedule.findOne({
+            "station.station": sId,
+            "station.station_a": { $exists: true },
+            _id: { $ne: id }
+          });
+          if (alreadyInA) {
+            targetField = 'station_b';
+          }
+        }
+
         const updated = await Schedule.findByIdAndUpdate(
           id,
           {
             $set: {
               station: [
                 { station: Number(stationId) },
-                { station_a: machine || id }
+                { [targetField]: machine || id }
               ],
               activeList: "false",
               activeAssembly: "true",
